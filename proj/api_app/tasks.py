@@ -27,11 +27,13 @@ def clean_tweetdb():
 def get_tweets():
     """Get some tweets from the twitter api and store them to the db."""
     if not Tweet.objects.all():
+        # If the db is empty, don't get max_id.
         tweets = api.search(
             q='#python',
             count=100
         )
     else:
+        # If the db is not empty, get max_id.
         subtask(clean_tweetdb)
         max_id = min([tweet.tweet_id for tweet in Tweet.objects.all()])
         tweets = api.search(
@@ -39,6 +41,8 @@ def get_tweets():
             max_id=max_id,
             count=100
         )
+
+    # Store the tweet data in lists.
     tweets_id = [tweet.id for tweet in tweets]
     tweets_date = [tweet.created_at for tweet in tweets]
     tweets_source = [tweet.source for tweet in tweets]
@@ -46,6 +50,7 @@ def get_tweets():
     tweets_retweet_cnt = [tweet.retweet_count for tweet in tweets]
     tweets_text = [tweet.text for tweet in tweets]
 
+    # Iterate over these lists and add data to db.
     for i, j, k, l, m, n in zip(
             tweets_id,
             tweets_date,
@@ -55,6 +60,7 @@ def get_tweets():
             tweets_text,
     ):
         try:
+            # Check that they are valid.
             Tweet.objects.create(
                 tweet_id=i,
                 tweet_date=j,
